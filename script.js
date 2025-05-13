@@ -128,59 +128,71 @@ function areNodesConnected(idx1, idx2) {
 let isred = true;
 let redCount = 0;
 let blueCount = 0;
+let selectedNode = null;
+
 timertotal();
 updatePlayerTurnText();
 
 nodeGroup.addEventListener('click', (e) => {
   const clicked = e.target;
+  if (!clicked || clicked.tagName !== 'circle') return;
   const idx = parseInt(clicked.dataset.index);
+  const isRedTurn = isred;
 
-  if (!clicked.classList.contains("disabled") &&
+  if (redCount + blueCount < 8) {
+    if (
+      !clicked.classList.contains("disabled") &&
       !clicked.classList.contains("red") &&
-      !clicked.classList.contains("blue")) {
-
-    let transported = false;
-    if ((isred && redCount >= 4) || (!isred && blueCount >= 4)) {
-      for (let other of circles) {
-        const otherIdx = parseInt(other.dataset.index);
-        if (areNodesConnected(idx, otherIdx)) {
-          if (isred && other.classList.contains('red')) {
-            other.classList.remove('red');
-            clicked.classList.add('red');
-            transported = true;
-            break;
-          }
-          if (!isred && other.classList.contains('blue')) {
-            other.classList.remove('blue');
-            clicked.classList.add('blue');
-            transported = true;
-            break;
-          }
+      !clicked.classList.contains("blue")
+    ) {
+      clicked.classList.add(isRedTurn ? 'red' : 'blue');
+      if (isRedTurn) redCount++; else blueCount++;
+      isred = !isred;
+      updateScores();
+      updatePlayerTurnText();
+      if (isLayerFilled(layersInOrder[currentLayerIndex])) {
+        getCirclesInLayer(layersInOrder[1]).forEach(c => c.classList.remove("disabled"));
+        if (getCirclesInLayer(layersInOrder[1]).filter(c =>
+          c.classList.contains("red") || c.classList.contains("blue")
+        ).length >= 2) {
+          getCirclesInLayer(layersInOrder[2]).forEach(c => c.classList.remove("disabled"));
         }
       }
-    } else {
-      clicked.classList.add(isred ? 'red' : 'blue');
-      isred ? redCount++ : blueCount++;
-      transported = true;
+      playertimer();
     }
+    return;
+  }
 
-    if (transported) {
-      updateScores(); // Update the scores after a valid move
+  const isRedNode = clicked.classList.contains('red');
+  const isBlueNode = clicked.classList.contains('blue');
+  const isEmpty = !isRedNode && !isBlueNode;
+
+  if (selectedNode === null) {
+    if ((isRedTurn && isRedNode) || (!isRedTurn && isBlueNode)) {
+      selectedNode = clicked;
+      clicked.setAttribute("stroke", "yellow");
+      clicked.setAttribute("stroke-width", "4");
+    }
+  } else {
+    const fromIdx = parseInt(selectedNode.dataset.index);
+
+    if (isEmpty && areNodesConnected(fromIdx, idx)) {
+      selectedNode.classList.remove(isRedTurn ? 'red' : 'blue');
+      clicked.classList.add(isRedTurn ? 'red' : 'blue');
+      selectedNode.removeAttribute("stroke");
+      selectedNode.removeAttribute("stroke-width");
+      selectedNode = null;
+
       isred = !isred;
+      updateScores();
       updatePlayerTurnText();
+      playertimer();
+    } else {
+      selectedNode.removeAttribute("stroke");
+      selectedNode.removeAttribute("stroke-width");
+      selectedNode = null;
     }
   }
-
-  if (isLayerFilled(layersInOrder[currentLayerIndex])) {
-    getCirclesInLayer(layersInOrder[1]).forEach(c => c.classList.remove("disabled"));
-    if(getCirclesInLayer(layersInOrder[1]).filter(c =>
-      c.classList.contains("red") || c.classList.contains("blue")
-    ).length >= 2) {
-      getCirclesInLayer(layersInOrder[2]).forEach(c => c.classList.remove("disabled"));
-    }
-  }
-
-  playertimer();
 });
 
 function updateScores() {
@@ -215,7 +227,7 @@ function updatePlayerTurnText() {
 
 function timertotal() {
   let duration = 900;
-  
+
   const timer = setInterval(() => {
     let minutes = Math.floor(duration / 60);
     let seconds = duration % 60;
@@ -229,20 +241,18 @@ function timertotal() {
       gameover.textContent = "GAME OVER! WHO WON LOOK LEFT";
       player.style.display="none";
       plays.style.display="none";
-      if(redScore>blueScore){
-         bluescore.style.display="none";
-         redscore.textContent="RED IS THE WINNER";
-         
-      }else{
+      if(redScore > blueScore){
+        bluescore.style.display="none";
+        redscore.textContent="RED IS THE WINNER";
+      } else {
         redscore.style.display="none";
-        bluescore.textContent="BLUE IS THE WINNER"
+        bluescore.textContent="BLUE IS THE WINNER";
       }
     }
   }, 1000);
 }
 
 function playertimer() {
-  
   clearInterval(plays.dataset.timer);
   plays.style.display = "flex";
   let seconds = 20;
@@ -252,28 +262,27 @@ function playertimer() {
     if (seconds < 0 || isLayerFilled(layersInOrder[2])) {
       clearInterval(playerInterval);
       plays.textContent = "Time's up!";
-      if(seconds<0){
-      if(player.classList.contains('bluetext')){
-        player.classList.remove('bluetext');
-        player.textContent="Red Won By Default";
-        totaltime.style.display="none";
-        gameover.style.display = "flex";
-        gameover.textContent = "GAME OVER! WHO WON LOOK ABOVE";
-        player.classList.add('redtext');
-        bluescore.style.display="none";
-        redscore.style.display="none";
+      if(seconds < 0){
+        if(player.classList.contains('bluetext')){
+          player.classList.remove('bluetext');
+          player.textContent="Red Won By Default";
+          totaltime.style.display="none";
+          gameover.style.display = "flex";
+          gameover.textContent = "GAME OVER! WHO WON LOOK ABOVE";
+          player.classList.add('redtext');
+          bluescore.style.display="none";
+          redscore.style.display="none";
+        } else {
+          player.classList.remove('redtext');
+          player.classList.add('bluetext');
+          player.textContent="Blue Won By Default";
+          totaltime.style.display="none";
+          gameover.style.display = "flex";
+          gameover.textContent = "GAME OVER! WHO WON LOOK ABOVE";
+          bluescore.style.display="none";
+          redscore.style.display="none";
+        }
       }
-      else{
-        player.classList.remove('redtext');
-        player.classList.add('bluetext');
-        player.textContent="Blue Won By Default";
-        totaltime.style.display="none";
-        gameover.style.display = "flex";
-        gameover.textContent = "GAME OVER! WHO WON LOOK ABOVE";
-        bluescore.style.display="none";
-        redscore.style.display="none";
-      }
-    }
     }
   }, 1000);
   plays.dataset.timer = playerInterval;
