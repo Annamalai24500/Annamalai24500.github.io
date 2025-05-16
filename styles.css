@@ -1,0 +1,42 @@
+body { background: #1e1e2f; margin: 0; }
+    svg { display: block; margin: auto; }
+    circle { fill: #ccc; stroke: white; stroke-width: 2; cursor: pointer; }
+    line { stroke: white; stroke-width: 3; }
+    text { fill: white; font-size: 14px; text-anchor: middle; alignment-baseline: middle; }
+    .background { background-color: aqua; }
+    .red { fill: red; }
+    .blue { fill: blue; }
+    #timer, #player-timer, #current-player, #game-over {
+      background-color: aliceblue;
+      padding: 10px 15px;
+      position: fixed;
+      right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #timer { top: 10px; }
+    #player-timer { top: 50px; display: none; }
+    #current-player { top: 100px; }
+    #game-over { top: 140px; display: none; }
+    #red-score, #blue-score {
+      background-color: aliceblue;
+      padding: 10px 15px;
+      padding-left: 15px;
+      position: fixed;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #red-score { top: 10px; left: 10px; }
+    #blue-score { top: 50px; left: 10px; }
+
+    .redtext { color: red; }
+    .bluetext { color: blue; }
+    .disabled{
+      pointer-events: none;
+    }
